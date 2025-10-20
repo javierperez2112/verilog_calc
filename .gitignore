@@ -1,0 +1,7 @@
+*
+
+!.gitignore
+!serial.v
+!main.v
+!upduino.pcf
+!apio.ini
