@@ -25,35 +25,35 @@ module serial
         int_load_data <= 0;
     end
 
-    // Synchronize load_data to sclk domain
+    // load_data -> int_load_data
     always @(posedge sclk) begin
         int_load_data <= load_data;
     end
 
-    // Main data shifting logic
     always @(posedge sclk) begin
-        // Load new data when detected
+        // cargar data_in
         if (int_load_data) begin
-            data_enable <= 1;           // Enable transmission
+            data_enable <= 1;    
             shift_reg <= data_in;
-            shift_cnt <= 6'd32;         // Start from MSB
-            //sdo <= data_in[31];         // Output first bit immediately
+            shift_cnt <= 6'd32;
+            sdo <= data_in[31];
         end 
-        // Shift out data when active
+        // transmitir mientras data_enable = 1
         else if (data_enable) begin
-            if (shift_cnt > 0) begin
-                sdo <= shift_reg[31];   // Output current MSB
+            if (shift_cnt > 1) begin
+                sdo <= shift_reg[30];   // esto huele a negrada
                 shift_reg <= shift_reg << 1;
                 shift_cnt <= shift_cnt - 1;
             end
             else begin 
-                // Transmission complete
+                // transmisión completa
                 data_enable <= 0;
                 sdo <= 0;
                 shift_cnt <= 0;
+                shift_reg <= 32'd0;
             end
         end
-        // Idle state
+        // idle
         else begin
             sdo <= 0;
         end
