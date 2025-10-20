@@ -6,57 +6,69 @@ module serial
     input wire load_data,       // load data
     input wire [31:0] data_in,  // data in
     input wire sclk,            // serial clock
-    
+
     // outputs
     output reg data_enable,     // data enable / chip select
     output reg sdo              // serial data out
 );
 
     reg [31:0] shift_reg;
-    reg int_load_data;      // internal load data
-    reg [5:0] shift_cnt;    // shift counter
+    reg [5:0] i;    // shift counter
+    reg n;
+
+    reg curr_state;
+    reg next_state;
+
+    parameter IDLE = 1'b0;
+    parameter TRAN = 1'b1;
 
     // Initialize registers
     initial begin
         data_enable <= 0;
         sdo <= 0;
         shift_reg <= 0;
-        shift_cnt <= 0;
-        int_load_data <= 0;
+        i <= 0;
+        curr_state <= IDLE;
+        next_state <= IDLE;
+        n <= 0;
     end
 
-    // load_data -> int_load_data
-    always @(posedge sclk) begin
-        int_load_data <= load_data;
-    end
-
-    always @(posedge sclk) begin
-        // cargar data_in
-        if (int_load_data) begin
-            data_enable <= 1;    
-            shift_reg <= data_in;
-            shift_cnt <= 6'd32;
-            sdo <= data_in[31];
-        end 
-        // transmitir mientras data_enable = 1
-        else if (data_enable) begin
-            if (shift_cnt > 1) begin
-                sdo <= shift_reg[30];   // esto huele a negrada
-                shift_reg <= shift_reg << 1;
-                shift_cnt <= shift_cnt - 1;
+    always @(curr_state, load_data, i) begin
+        case (curr_state)
+            IDLE: begin
+                if (load_data) begin
+                    next_state <= TRAN;
+                    shift_reg <= data_in;
+                    i <= 0;
+                end else begin
+                    next_state <= IDLE;
+                end
             end
-            else begin 
-                // transmisión completa
+            TRAN: begin
+                if (i < 31) begin 
+                    next_state <= TRAN;
+                end else begin
+                    next_state <= IDLE;
+                end
+            end
+        endcase
+    end
+
+    always @(negedge sclk) begin
+        curr_state <= next_state;
+        case (curr_state)
+            TRAN: begin
+                i <= i + 1;
+                data_enable <= 1;
+                sdo <= shift_reg[31];
+                shift_reg <= shift_reg << 1;
+            end
+            IDLE: begin
                 data_enable <= 0;
                 sdo <= 0;
-                shift_cnt <= 0;
-                shift_reg <= 32'd0;
+                i <= 0;
             end
-        end
-        // idle
-        else begin
-            sdo <= 0;
-        end
+        endcase
     end
 
 endmodule
