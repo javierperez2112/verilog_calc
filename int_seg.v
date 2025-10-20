@@ -62,6 +62,8 @@ module int_seg
             end
             ERR: begin
                 next_state <= IDLE;
+                conv_done <= 1'b1;
+                digits <= bruh;
             end
             DEF: begin
                 next_state <= IDLE;
