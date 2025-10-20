@@ -3,6 +3,7 @@
 !.gitignore
 !serial.v
 !main.v
+!int_seg.v
 !upduino.pcf
 !apio.ini
 !makefile
