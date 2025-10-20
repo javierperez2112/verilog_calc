@@ -31,7 +31,7 @@ module main
     initial begin
         $dumpfile("my_dumpfile.vcd");
         $dumpvars(0, main);
-        #10000000 $finish;
+        #2000000 $finish;
     end
 
     always
@@ -44,7 +44,7 @@ module main
             gpio_sclk <= ~gpio_sclk;
             sclk_cnt <= 0;
             cnt <= cnt + 1;
-            if (gpio_sclk == 1) begin
+            if (gpio_sclk == 0) begin
                 if (cnt > 255) begin
                     m_load_data <= 1;
                     cnt <= 0;
