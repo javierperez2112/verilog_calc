@@ -23,27 +23,41 @@ module int_seg
     parameter [1:0] ERR = 2'b10;
     parameter [1:0] DEF = 2'b11;
 
+    reg [29:0] bcd_temp;
+
     initial begin
         curr_state <= 0;
         next_state <= 0;
         i <= 0;
+        bcd_temp <= 0;
+        bin_dig <= 0;
     end
 
-    always @(curr_state, convert, error) begin
+    always @(curr_state, convert, error, i) begin
         case (curr_state) 
             IDLE: begin
+                conv_done <= 1'b0;
                 if (error) begin
                     next_state <= ERR;
                 end else if (convert) begin
                     next_state <= CONV;
                     i <= 0;
+                    bcd_temp <= 0;
+                    bcd_temp[13:0] = num;
+                end else begin
+                    next_state <= IDLE;
                 end
             end
             CONV: begin
                 if (i < 14) begin
                     next_state <= CONV;
-                end else if (i >=14) begin
+                    digits[7:0]   = get_segment(bcd_temp[17:14]); // digit 0
+                    digits[15:8]  = get_segment(bcd_temp[21:18]); // digit 1
+                    digits[23:16] = get_segment(bcd_temp[25:22]); // digit 2
+                    digits[31:24] = get_segment(bcd_temp[29:26]); // digit 3
+                end else begin
                     next_state <= IDLE;
+                    conv_done <= 1'b1;
                 end
             end
             ERR: begin
@@ -57,38 +71,15 @@ module int_seg
 
     always @(posedge clk) begin
         curr_state <= next_state;
-    end
-
-endmodule
-
-/*
-
-function [31:0] bin_bcd;    // binario (14 bits) -> BCD
-        input [13:0] bin;
-        reg [29:0] bcd_temp; // 16-bit BCD (4 digits * 4 bits) + 14-bit binary
-        integer i;
-        begin
-            bcd_temp = 0;
-            bcd_temp[13:0] = bin; // Place binary input at the bottom
-            
-            for (i = 0; i < 14; i = i + 1) begin
-                // Check each BCD digit and add 3 if >= 5
-                if (bcd_temp[17:14] >= 5) bcd_temp[17:14] = bcd_temp[17:14] + 3;
-                if (bcd_temp[21:18] >= 5) bcd_temp[21:18] = bcd_temp[21:18] + 3;
-                if (bcd_temp[25:22] >= 5) bcd_temp[25:22] = bcd_temp[25:22] + 3;
-                if (bcd_temp[29:26] >= 5) bcd_temp[29:26] = bcd_temp[29:26] + 3;
-                
-                // Shift entire register left
-                bcd_temp = bcd_temp << 1;
-            end
-            
-            // Extract BCD digits and convert to 7-segment
-            bin_bcd[7:0]   = get_segment(bcd_temp[17:14]); // digit 0
-            bin_bcd[15:8]  = get_segment(bcd_temp[21:18]); // digit 1
-            bin_bcd[23:16] = get_segment(bcd_temp[25:22]); // digit 2
-            bin_bcd[31:24] = get_segment(bcd_temp[29:26]); // digit 3
+        if (curr_state == CONV) begin
+            i <= i + 1;
+            if (bcd_temp[17:14] >= 5) bcd_temp[17:14] = bcd_temp[17:14] + 3;
+            if (bcd_temp[21:18] >= 5) bcd_temp[21:18] = bcd_temp[21:18] + 3;
+            if (bcd_temp[25:22] >= 5) bcd_temp[25:22] = bcd_temp[25:22] + 3;
+            if (bcd_temp[29:26] >= 5) bcd_temp[29:26] = bcd_temp[29:26] + 3;
+            bcd_temp = bcd_temp << 1;
         end
-    endfunction
+    end
 
     function [7:0] get_segment;     // switch-case con valores del display
         input [3:0] bcd_digit;
@@ -109,4 +100,4 @@ function [31:0] bin_bcd;    // binario (14 bits) -> BCD
         end
     endfunction
 
-    */
+endmodule
