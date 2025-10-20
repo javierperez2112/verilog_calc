@@ -12,7 +12,7 @@ module int_seg
     output reg conv_done        // conversion done flag
 );
 
-    localparam integer bruh = 32'h763D507C;     // error (bruh)
+    localparam integer bruh = 32'h741C507C;     // error (bruh)
 
     reg [1:0] curr_state;
     reg [1:0] next_state;
