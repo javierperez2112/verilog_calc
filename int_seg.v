@@ -8,8 +8,8 @@ module int_seg
     input wire clk,             // clock
 
     // outputs
-    output reg [31:0] digits,
-    output reg conv_done
+    output reg [31:0] digits,   // word to send to display
+    output reg conv_done        // conversion done flag
 );
 
     localparam integer bruh = 32'h763D507C;     // error (bruh)
@@ -29,7 +29,6 @@ module int_seg
     parameter [1:0] DEF = 2'b11;
 
     reg [29:0] bcd_temp;
-    reg [15:0] bcd_num;     // debug
 
     initial begin
         curr_state <= IDLE;
@@ -42,7 +41,6 @@ module int_seg
         dig1 <= 0;
         dig2 <= 0;
         dig3 <= 0;
-        bcd_num <= 0;
     end
 
     always @(curr_state, convert, error, i) begin
@@ -67,7 +65,6 @@ module int_seg
                     dig1 <= bcd_temp[21:18];
                     dig2 <= bcd_temp[25:22];
                     dig3 <= bcd_temp[29:26];
-                    bcd_num <= {bcd_temp[29:26],bcd_temp[25:22],bcd_temp[21:18],bcd_temp[17:14]};   // debug
                 end else begin
                     digits[7:0]   <= get_segment(dig0); // digit 0
                     digits[15:8]  <= get_segment(dig1); // digit 1

@@ -3,7 +3,7 @@
 module main 
 
     (
-        output reg gpio_sclk,           // serial clock
+        output reg gpio_sclk,            // serial clock
         output wire gpio_data_enable,    // data enable / chip select
         output wire gpio_sdo,            // serial data out
         output wire gpio_dclk            // digit clock
@@ -24,8 +24,6 @@ module main
         gpio_sclk = 0;
         sclk_cnt = 0;
         cnt = 0;
-        //m_digits <= 0;
-        //m_conv_done <= 0;
     end
 
     // SB_HFOSC u_SB_HFOSC(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(int_osc));   // Código para FPGA
