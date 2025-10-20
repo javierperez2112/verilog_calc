@@ -18,19 +18,31 @@ module int_seg
     reg [1:0] next_state;
     reg [3:0] i;
 
+    reg [7:0] dig0;
+    reg [7:0] dig1;
+    reg [7:0] dig2;
+    reg [7:0] dig3;
+
     parameter [1:0] IDLE = 2'b00;
     parameter [1:0] CONV = 2'b01;
     parameter [1:0] ERR = 2'b10;
     parameter [1:0] DEF = 2'b11;
 
     reg [29:0] bcd_temp;
+    reg [15:0] bcd_num;     // debug
 
     initial begin
-        curr_state <= 0;
-        next_state <= 0;
+        curr_state <= IDLE;
+        next_state <= IDLE;
         i <= 0;
         bcd_temp <= 0;
-        bin_dig <= 0;
+        conv_done <= 0;
+        digits <= 0;
+        dig0 <= 0;
+        dig1 <= 0;
+        dig2 <= 0;
+        dig3 <= 0;
+        bcd_num <= 0;
     end
 
     always @(curr_state, convert, error, i) begin
@@ -43,19 +55,24 @@ module int_seg
                     next_state <= CONV;
                     i <= 0;
                     bcd_temp <= 0;
-                    bcd_temp[13:0] = num;
+                    bcd_temp[13:0] <= num;
                 end else begin
                     next_state <= IDLE;
                 end
             end
             CONV: begin
-                if (i < 14) begin
+                if (i <= 14) begin
                     next_state <= CONV;
-                    digits[7:0]   = get_segment(bcd_temp[17:14]); // digit 0
-                    digits[15:8]  = get_segment(bcd_temp[21:18]); // digit 1
-                    digits[23:16] = get_segment(bcd_temp[25:22]); // digit 2
-                    digits[31:24] = get_segment(bcd_temp[29:26]); // digit 3
+                    dig0 <= bcd_temp[17:14];
+                    dig1 <= bcd_temp[21:18];
+                    dig2 <= bcd_temp[25:22];
+                    dig3 <= bcd_temp[29:26];
+                    bcd_num <= {bcd_temp[29:26],bcd_temp[25:22],bcd_temp[21:18],bcd_temp[17:14]};   // debug
                 end else begin
+                    digits[7:0]   <= get_segment(dig0); // digit 0
+                    digits[15:8]  <= get_segment(dig1); // digit 1
+                    digits[23:16] <= get_segment(dig2); // digit 2
+                    digits[31:24] <= get_segment(dig3); // digit 3
                     next_state <= IDLE;
                     conv_done <= 1'b1;
                 end

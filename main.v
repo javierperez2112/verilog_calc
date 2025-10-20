@@ -13,6 +13,8 @@ module main
     reg [9:0] sclk_cnt;
     reg [9:0] cnt;
     reg m_load_data;
+    wire [31:0] m_digits;
+    wire m_conv_done;
 
     assign gpio_dclk = m_load_data;
 
@@ -22,6 +24,8 @@ module main
         gpio_sclk = 0;
         sclk_cnt = 0;
         cnt = 0;
+        //m_digits <= 0;
+        //m_conv_done <= 0;
     end
 
     // SB_HFOSC u_SB_HFOSC(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(int_osc));   // Código para FPGA
@@ -58,7 +62,10 @@ module main
         end
     end
 
-    serial digit_spi(.load_data(m_load_data), .data_in(32'hF0F00F0F), .sclk(gpio_sclk),
+    serial digit_spi(.load_data(m_conv_done), .data_in(m_digits), .sclk(gpio_sclk),
         .data_enable(gpio_data_enable), .sdo(gpio_sdo));
+
+    int_seg conv(.num(14'd1234), .convert(m_load_data), .error(1'b0), .clk(gpio_sclk),
+        .digits(m_digits), .conv_done(m_conv_done));
 
 endmodule
