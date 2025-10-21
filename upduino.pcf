@@ -22,7 +22,7 @@ set_io -nowarn gpio_dclk 23
 set_io -nowarn gpio_sclk 25
 set_io -nowarn gpio_data_enable 26
 set_io -nowarn gpio_sdo 27
-set_io -nowarn gpio_32 32
+set_io -nowarn gpio_conv_done 32
 set_io -nowarn gpio_35 35
 set_io -nowarn gpio_31 31
 set_io -nowarn gpio_37 37
