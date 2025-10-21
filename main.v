@@ -16,8 +16,6 @@ module main
     wire [31:0] m_digits;
     wire m_conv_done;
 
-    assign gpio_dclk = m_load_data;
-
     initial begin
         int_osc = 0;
         m_load_data = 0;
@@ -61,7 +59,7 @@ module main
     end
 
     serial digit_spi(.load_data(m_conv_done), .data_in(m_digits), .sclk(gpio_sclk),
-        .data_enable(gpio_data_enable), .sdo(gpio_sdo));
+        .data_enable(gpio_data_enable), .sdo(gpio_sdo), .tran_done(gpio_dclk));
 
     int_seg conv(.num(14'd1234), .convert(m_load_data), .error(1'b0), .clk(gpio_sclk),
         .digits(m_digits), .conv_done(m_conv_done));
