@@ -50,7 +50,6 @@ module int_seg
             CONV: begin
                 if (i < 14) begin
                     next_state <= CONV;
-                    // BCD adjustment before shift
                     if (bcd_temp[17:14] >= 5) bcd_temp[17:14] = bcd_temp[17:14] + 3;
                     if (bcd_temp[21:18] >= 5) bcd_temp[21:18] = bcd_temp[21:18] + 3;
                     if (bcd_temp[25:22] >= 5) bcd_temp[25:22] = bcd_temp[25:22] + 3;
@@ -70,8 +69,6 @@ module int_seg
                 next_state <= IDLE;
             end
         endcase
-        
-        // CRITICAL: Update the current state
         curr_state <= next_state;
     end
 
