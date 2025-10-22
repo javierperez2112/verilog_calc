@@ -10,8 +10,7 @@ module rpn_stack
 );
 
     parameter sp_size = 4;
-    parameter sp_max = (2 ** sp_size) - 1;
-    parameter stack_array_size = (2**sp_size) * 16 - 1;
+    parameter sp_max = 15;
     localparam integer BRUH = 32'h763D507C;     // error (bruh)
 
     reg error;
@@ -127,7 +126,7 @@ module rpn_stack
                         end
                     endcase
                 end else begin
-                    if ((in_num[3:0] < 10) & (dp != 3)) begin
+                    if ((in_num[3:0] < 10) & (dp < 3)) begin
                         case (dp)
                             2'd0: stack[sp] <= {12'b0, in_num[3:0]};                    // 1
                             2'd1: stack[sp] <= {stack[sp][15:12], 8'b0, in_num[3:0]};   // 10
@@ -206,12 +205,12 @@ module rpn_stack
 
     always @(posedge clk) begin
         if (error) begin
+            disp_num <= BRUH;
+        end else begin
             disp_num[7:0]   <= get_segment(stack[disp_p][15:12]);  // 1000
             disp_num[15:8]  <= get_segment(stack[disp_p][11:8]);   // 100  
             disp_num[23:16] <= get_segment(stack[disp_p][7:4]);    // 10
             disp_num[31:24] <= get_segment(stack[disp_p][3:0]);    // 1
-        end else begin
-            disp_num <= BRUH;
         end
     end
 
