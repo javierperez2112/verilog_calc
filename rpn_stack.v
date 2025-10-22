@@ -200,9 +200,6 @@ module rpn_stack
             SUBS: begin
                 next_state <= IDLE;
             end
-            default: begin
-                next_state <= curr_state;
-            end
         endcase
     end
 
