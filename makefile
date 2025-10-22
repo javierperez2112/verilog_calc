@@ -1,4 +1,4 @@
-main: main.v serial.v
+main: main.v serial.v keyboard.v rpn_stack.v
 	apio build
 	apio upload
 
