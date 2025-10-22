@@ -26,7 +26,7 @@ module serial
             IDLE: begin
                 data_enable <= 0;
                 sdo <= 0;
-                int_tran_done <= 0;
+                int_tran_done <= 1;
                 if (load_data) begin
                     curr_state <= TRAN;
                     shift_reg <= data_in;

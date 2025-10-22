@@ -4,6 +4,7 @@
 !serial.v
 !main.v
 !int_seg.v
+!keyboard.v
 !upduino.pcf
 !apio.ini
 !makefile

@@ -24,14 +24,14 @@ set_io -nowarn gpio_data_enable 26
 set_io -nowarn gpio_sdo 27
 set_io -nowarn gpio_conv_done 32
 set_io -nowarn gpio_35 35
-set_io -nowarn gpio_31 31
-set_io -nowarn gpio_37 37
-set_io -nowarn gpio_34 34
-set_io -nowarn gpio_43 43
-set_io -nowarn gpio_36 36
-set_io -nowarn gpio_42 42
-set_io -nowarn gpio_38 38
-set_io -nowarn gpio_28 28
+set_io -nowarn gpio_sense_pins[3] 31
+set_io -nowarn gpio_sense_pins[2] 37
+set_io -nowarn gpio_sense_pins[1] 34
+set_io -nowarn gpio_sense_pins[0] 43
+set_io -nowarn gpio_drive_pins[3] 36
+set_io -nowarn gpio_drive_pins[2] 42
+set_io -nowarn gpio_drive_pins[1] 38
+set_io -nowarn gpio_drive_pins[0] 28
 
 # Normal GPIO pins, right side
 
