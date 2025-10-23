@@ -116,6 +116,8 @@ module rpn_stack
                                 stack[sp + 1] <= 16'b0;
                                 sp <= sp + 1;
                                 disp_p <= sp + 1;
+                            end else if (sp == sp_max) begin
+                                error <= 1;
                             end
                             next_state <= IDLE;
                         end
