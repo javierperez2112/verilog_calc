@@ -6,14 +6,17 @@ module rpn_stack
     input wire [4:0] in_num,
     input wire intro,           // key pressed flag
     // outputs
-    output reg [31:0] disp_num
+    output reg [31:0] disp_num,
+    output reg test
 );
 
     parameter sp_size = 4;
     parameter sp_max = 15;
-    localparam integer BRUH = 32'h763D507C;     // error (bruh)
+    localparam integer BRUH = 32'h741C507C;     // error (bruh)
 
     reg error;
+    reg intro_prev;
+    reg [4:0] int_num;
 
     reg [15:0] stack [sp_max:0];
     reg [(sp_size - 1):0] sp;
@@ -26,6 +29,7 @@ module rpn_stack
     reg [4:0] dig1;
     reg [4:0] dig2;
     reg [4:0] dig3;
+    reg [3:0] disp_zeros;
     reg [3:0] carry;
     reg start_op;
 
@@ -59,19 +63,22 @@ module rpn_stack
 
     always @(posedge clk) begin
         curr_state <= next_state;
+        intro_prev <= intro;
+        test <= intro && (~intro_prev);
 
         case (curr_state)
             IDLE: begin
-                if (intro) begin
+                if (intro && (~intro_prev)) begin
                     next_state <= INTR;
+                    int_num <= in_num;
                 end else begin
                     next_state <= IDLE;
                 end
             end
             INTR: begin
                 error <= 0;
-                if (in_num[4]) begin
-                    case (in_num)
+                if (int_num[4]) begin
+                    case (int_num)
                         PLUS: begin
                             if (sp >= 1) begin 
                                 start_op <= 1;
@@ -82,37 +89,43 @@ module rpn_stack
                         end
                         MINUS: begin
                             if (sp >= 1) begin 
+                                start_op <= 1;
                                 next_state <= SUBS;
                             end else begin
                                 next_state <= IDLE;
                             end
                         end
                         BACKS: begin
-                            case (dp)
-                                2'd0: stack[sp] <= stack[sp] & 16'hFFF0;    // clear 1 position
-                                2'd1: stack[sp] <= stack[sp] & 16'hFF0F;    // clear 10 position
-                                2'd2: stack[sp] <= stack[sp] & 16'hF0FF;    // clear 100 position
-                                2'd3: stack[sp] <= stack[sp] & 16'h0FFF;    // clear 1000 position
-                            endcase
-                            dp <= (dp > 0) ? dp - 1 : dp;
-                            next_state <= IDLE;
-                        end
-                        ENTER: begin
-                            if (sp < sp_max) begin
-                                stack[sp + 1] <= 16'b0;
-                                sp <= sp + 1;
-                                disp_p <= sp + 1;
-                                dp <= 0;
+                            if (stack[sp] == 16'd0) begin
+                                if (sp > 0) begin
+                                    sp <= sp - 1;
+                                    disp_p <= sp - 1;
+                                end else begin
+                                    sp <= sp;
+                                    disp_p <= sp;
+                                end
+                            end else begin
+                                stack[sp] <= {4'd0 ,stack[sp][15:4]};
+                                sp <= sp;
+                                disp_p <= sp;
                             end
                             next_state <= IDLE;
                         end
-                        UP: begin
+                        ENTER: begin
+                            if ((sp < sp_max) && (stack[sp] != 0)) begin
+                                stack[sp + 1] <= 16'b0;
+                                sp <= sp + 1;
+                                disp_p <= sp + 1;
+                            end
+                            next_state <= IDLE;
+                        end
+                        DOWN: begin
                             if (disp_p < sp) begin
                                 disp_p <= disp_p + 1;
                             end
                         next_state <= IDLE;
                         end
-                        DOWN: begin
+                        UP: begin
                             if (disp_p > 0) begin
                                 disp_p <= disp_p - 1;
                             end
@@ -126,14 +139,14 @@ module rpn_stack
                         end
                     endcase
                 end else begin
-                    if ((in_num[3:0] < 10) & (dp < 3)) begin
-                        case (dp)
-                            2'd0: stack[sp] <= {12'b0, in_num[3:0]};                    // 1
-                            2'd1: stack[sp] <= {stack[sp][15:12], 8'b0, in_num[3:0]};   // 10
-                            2'd2: stack[sp] <= {stack[sp][15:8], 4'b0, in_num[3:0]};    // 100
-                            2'd3: stack[sp] <= {stack[sp][15:4], in_num[3:0]};          // 1000
-                        endcase
-                        dp <= dp + 1;
+                    if (int_num[3:0] < 10) begin
+                        if (dp < 3) begin
+                            stack[sp] <= {stack[sp][11:0], int_num[3:0]};
+                        end else begin
+                            if (stack[sp][15:12] == 4'd0) begin
+                                stack[sp] <= {stack[sp][11:0], int_num[3:0]};
+                            end
+                        end
                         disp_p <= sp;
                     end
                     next_state <= IDLE;
@@ -146,13 +159,13 @@ module rpn_stack
                     dig2 <= stack[sp][11:8] + stack[sp-1][11:8];
                     dig3 <= stack[sp][15:12] + stack[sp-1][15:12];
                     start_op <= 0;
-                    carry <= 0;
+                    carry <= 4'd0;
                     next_state <= SUM;
                 end else begin
                     
-                    dig1 <= dig1 + carry[0];
-                    dig2 <= dig2 + carry[1];
-                    dig3 <= dig3 + carry[2];
+                    dig1 = dig1 + carry[0];
+                    dig2 = dig2 + carry[1];
+                    dig3 = dig3 + carry[2];
 
                     // 1 digit
                     if (dig0 > 9) begin
@@ -183,13 +196,13 @@ module rpn_stack
                         carry[3] <= 0;
                     end
                     // state logic
-                    if (carry == 0) begin
-                        stack[sp - 1] <= {dig3, dig2, dig1, dig0};
+                    if ((dig0<10) && (dig1<10) && (dig2<10) && (dig3<10)) begin
+                        stack[sp - 1] <= {dig3[3:0], dig2[3:0], dig1[3:0], dig0[3:0]};
                         stack[sp] <= 0;
                         sp <= sp - 1;
                         disp_p <= sp - 1;
                         next_state <= IDLE;
-                    end else if (carry[3]) begin
+                    end else if (carry[3] || (dig3 > 9)) begin
                         error <= 1;
                         next_state <= IDLE;
                     end else begin
@@ -198,7 +211,62 @@ module rpn_stack
                 end
             end
             SUBS: begin
-                next_state <= IDLE;
+                if (start_op) begin
+                    dig0 <= stack[sp-1][3:0] - stack[sp][3:0];
+                    dig1 <= stack[sp-1][7:4] - stack[sp][7:4];
+                    dig2 <= stack[sp-1][11:8] - stack[sp][11:8];
+                    dig3 <= stack[sp-1][15:12] - stack[sp][15:12];
+                    start_op <= 0;
+                    carry <= 4'd0;
+                    next_state <= SUBS;
+                end else begin
+                    
+                    dig1 = dig1 - carry[0];
+                    dig2 = dig2 - carry[1];
+                    dig3 = dig3 - carry[2];
+
+                    // 1 digit
+                    if (dig0[4]) begin
+                        dig0 <= dig0 + 10;
+                        carry[0] <= 1;
+                    end else begin
+                        carry[0] <= 0;
+                    end
+                    // 10 digit
+                    if (dig1[4]) begin
+                        dig1 <= dig1 + 10;
+                        carry[1] <= 1;
+                    end else begin
+                        carry[1] <= 0;
+                    end
+                    // 100 digit
+                    if (dig2[4]) begin
+                        dig2 <= dig2 + 10;
+                        carry[2] <= 1;
+                    end else begin
+                        carry[2] <= 0;
+                    end
+                    // 1000 digit
+                    if (dig3[4]) begin
+                        dig3 <= dig3 + 10;
+                        carry[3] <= 1;
+                    end else begin
+                        carry[3] <= 0;
+                    end
+                    // state logic
+                    if ((~dig0[4]) && (~dig1[4]) && (~dig2[4]) && (~dig3[4])) begin
+                        stack[sp - 1] <= {dig3[3:0], dig2[3:0], dig1[3:0], dig0[3:0]};
+                        stack[sp] <= 0;
+                        sp <= sp - 1;
+                        disp_p <= sp - 1;
+                        next_state <= IDLE;
+                    end else if (carry[3] || (dig3[4])) begin
+                        error <= 1;
+                        next_state <= IDLE;
+                    end else begin
+                        next_state <= SUBS;
+                    end
+                end
             end
         endcase
     end
@@ -207,10 +275,26 @@ module rpn_stack
         if (error) begin
             disp_num <= BRUH;
         end else begin
-            disp_num[7:0]   <= get_segment(stack[disp_p][15:12]);  // 1000
-            disp_num[15:8]  <= get_segment(stack[disp_p][11:8]);   // 100  
-            disp_num[23:16] <= get_segment(stack[disp_p][7:4]);    // 10
-            disp_num[31:24] <= get_segment(stack[disp_p][3:0]);    // 1
+            disp_num[7:0]   <= (disp_zeros[3]) ? 8'd0 : get_segment(stack[disp_p][15:12]);  // 1000
+            disp_num[15:8]  <= (disp_zeros[2]) ? 8'd0 : get_segment(stack[disp_p][11:8]);   // 100  
+            disp_num[23:16] <= (disp_zeros[1]) ? 8'd0 : get_segment(stack[disp_p][7:4]);    // 10
+            disp_num[31:24] <= get_segment(stack[disp_p][3:0]);                             // 1
+        end
+    end
+
+    always @(posedge clk) begin
+        disp_zeros[3] <= (stack[disp_p][15:12] == 4'd0);
+        disp_zeros[2] <= (stack[disp_p][11:8] == 4'd0) & (stack[disp_p][15:12] == 4'd0);
+        disp_zeros[1] <= (stack[disp_p][7:4] == 4'd0) & (stack[disp_p][11:8] == 4'd0) & (stack[disp_p][15:12] == 4'd0);
+        disp_zeros[0] <= (stack[disp_p][3:0] == 4'd0) & (stack[disp_p][7:4] == 4'd0) & (stack[disp_p][15:12] == 4'd0) & (stack[disp_p][11:8] == 4'd0);
+        if (disp_zeros[0]) begin
+            dp <= 0;
+        end else if (disp_zeros[1]) begin
+            dp <= 1;
+        end else if (disp_zeros[2]) begin
+            dp <= 2;
+        end else begin
+            dp <= 3;
         end
     end
 

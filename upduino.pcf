@@ -23,7 +23,7 @@ set_io -nowarn gpio_sclk 25
 set_io -nowarn gpio_data_enable 26
 set_io -nowarn gpio_sdo 27
 set_io -nowarn gpio_conv_done 32
-set_io -nowarn gpio_35 35
+set_io -nowarn test_intr 35
 set_io -nowarn gpio_sense_pins[3] 31
 set_io -nowarn gpio_sense_pins[2] 37
 set_io -nowarn gpio_sense_pins[1] 34

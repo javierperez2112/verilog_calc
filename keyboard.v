@@ -10,8 +10,7 @@ module keyboard
     );
 
     reg [1:0] drive_cnt;
-    reg int_intro_prev;
-    reg int_intro;
+    reg int_enable;
 
     // operations
     parameter [4:0] PLUS    = 5'b10000;
@@ -23,13 +22,14 @@ module keyboard
     parameter [4:0] NOP     = 5'b10110;
 
     always @(posedge clk) begin
-        int_intro_prev <= int_intro;
-        drive_cnt <= drive_cnt + 1;
-        drive_pins = 4'b1 << drive_cnt;
         if (sense_pins) begin
+            int_enable <= 0;
             intro <= 1;
             value <= out_val({drive_pins, sense_pins});
         end else begin
+            drive_cnt <= drive_cnt + 1;
+            drive_pins <= (4'b0001 << drive_cnt);
+            int_enable <= 1;
             intro <= 0;
         end
     end
@@ -39,23 +39,23 @@ module keyboard
         begin
         case (drive_sense)
             // numbers
-            8'h12: out_val = 5'd0;
-            8'h21: out_val = 5'd1;
-            8'h22: out_val = 5'd2;
-            8'h24: out_val = 5'd3;
-            8'h41: out_val = 5'd4;
-            8'h42: out_val = 5'd5;
-            8'h44: out_val = 5'd6;
-            8'h81: out_val = 5'd7;
-            8'h82: out_val = 5'd8;
-            8'h84: out_val = 5'd9;
+            8'h82: out_val = 5'd0;
+            8'h11: out_val = 5'd1;
+            8'h12: out_val = 5'd2;
+            8'h14: out_val = 5'd3;
+            8'h21: out_val = 5'd4;
+            8'h22: out_val = 5'd5;
+            8'h24: out_val = 5'd6;
+            8'h41: out_val = 5'd7;
+            8'h42: out_val = 5'd8;
+            8'h44: out_val = 5'd9;
             // operations
-            8'h28: out_val = PLUS;
-            8'h48: out_val = MINUS;
-            8'h88: out_val = BACKS;
-            8'h18: out_val = ENTER;
-            8'h14: out_val = UP;
-            8'h11: out_val = DOWN;
+            8'h18: out_val = PLUS;
+            8'h28: out_val = MINUS;
+            8'h48: out_val = BACKS;
+            8'h88: out_val = ENTER;
+            8'h84: out_val = UP;
+            8'h81: out_val = DOWN;
             default: out_val = NOP;
         endcase
         end

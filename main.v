@@ -10,7 +10,8 @@ module main
         output reg gpio_sclk,            // serial clock
         output wire gpio_data_enable,    // data enable / chip select
         output wire gpio_sdo,            // serial data out
-        output reg gpio_dclk            // digit clock
+        output reg gpio_dclk,            // digit clock
+        output wire test_intr
     );
 
     wire int_osc;
@@ -22,6 +23,8 @@ module main
     wire m_conv_done;
     wire m_tran_done;
     wire m_intro;
+
+    assign test_intr = m_intro;
     
     SB_HFOSC u_SB_HFOSC(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(int_osc));   // Código para FPGA
 
