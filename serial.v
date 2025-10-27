@@ -1,16 +1,17 @@
 module serial
-(
-    // inputs
-    input wire load_data,       // load data
-    input wire [31:0] data_in,  // data in
-    input wire sclk,            // serial clock
-    input wire clk,
 
-    // outputs
-    output reg data_enable,     // data enable / chip select
-    output reg sdo,             // serial data out
-    output wire tran_done       // transmission done flag
-);
+    (
+        // inputs
+        input wire load_data,       // load data
+        input wire [31:0] data_in,  // data in
+        input wire sclk,            // serial clock
+        input wire clk,
+
+        // outputs
+        output reg data_enable,     // data enable / chip select
+        output reg sdo,             // serial data out
+        output wire tran_done       // transmission done flag
+    );
 
     reg [31:0] shift_reg;
     reg [5:0] i;

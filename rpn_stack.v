@@ -1,14 +1,14 @@
 module rpn_stack
 
-(
-    // inputs
-    input wire clk,
-    input wire [4:0] in_num,
-    input wire intro,           // key pressed flag
-    // outputs
-    output reg [31:0] disp_num,
-    output reg test
-);
+    (
+        // inputs
+        input wire clk,
+        input wire [4:0] in_num,
+        input wire intro,           // key pressed flag
+        // outputs
+        output reg [31:0] disp_num,
+        output reg test
+    );
 
     parameter sp_size = 4;
     parameter sp_max = 15;
@@ -74,124 +74,128 @@ module rpn_stack
                 end
             end
             INTR: begin
-                error <= 0;
-                if (int_num[4]) begin
-                    case (int_num)
-                        PLUS: begin     // nigga
-                            if (sp >= 1) begin 
-                                if (stack[sp]) begin    // sum current number if != 0
-                                    dig0 <= stack[sp][3:0] + stack[sp-1][3:0];
-                                    dig1 <= stack[sp][7:4] + stack[sp-1][7:4];
-                                    dig2 <= stack[sp][11:8] + stack[sp-1][11:8];
-                                    dig3 <= stack[sp][15:12] + stack[sp-1][15:12];
-                                    carry <= 4'd0;
-                                    curr_state <= SUM;
-                                end else if (sp >= 2) begin // sum previous numbers if == 0
-                                    dig0 <= stack[sp-1][3:0] + stack[sp-2][3:0];
-                                    dig1 <= stack[sp-1][7:4] + stack[sp-2][7:4];
-                                    dig2 <= stack[sp-1][11:8] + stack[sp-2][11:8];
-                                    dig3 <= stack[sp-1][15:12] + stack[sp-2][15:12];
-                                    // pop current (0) from stack
-                                    sp <= sp - 1;
-                                    disp_p <= sp - 1;
-                                    carry <= 4'd0;
-                                    curr_state <= SUM;
-                                end else begin  // or return same as sp-1 if current==0 and there arent enough nums
-                                    sp <= sp - 1;
-                                    disp_p <= sp - 1;
-                                    curr_state <= IDLE;
-                                end
-                            end else begin
-                                curr_state <= IDLE;
-                            end
-                        end
-                        MINUS: begin    // nigga
-                            if (sp >= 1) begin 
-                                if (stack[sp]) begin    // substract current number if != 0
-                                    dig0 <= stack[sp-1][3:0] - stack[sp][3:0];
-                                    dig1 <= stack[sp-1][7:4] - stack[sp][7:4];
-                                    dig2 <= stack[sp-1][11:8] - stack[sp][11:8];
-                                    dig3 <= stack[sp-1][15:12] - stack[sp][15:12];
-                                    carry <= 4'd0;
-                                    curr_state <= SUBS;
-                                end else if (sp >= 2) begin // substract previous numbers if == 0
-                                    dig0 <= stack[sp-2][3:0] - stack[sp-1][3:0];
-                                    dig1 <= stack[sp-2][7:4] - stack[sp-1][7:4];
-                                    dig2 <= stack[sp-2][11:8] - stack[sp-1][11:8];
-                                    dig3 <= stack[sp-2][15:12] - stack[sp-1][15:12];
-                                    // pop current (0) from stack
-                                    sp <= sp - 1;
-                                    disp_p <= sp - 1;
-                                    carry <= 4'd0;
-                                    curr_state <= SUBS;
-                                end else begin  // or return same as sp-1 if current==0 and there arent enough nums
-                                    sp <= sp - 1;
-                                    disp_p <= sp - 1;
-                                    curr_state <= IDLE;
-                                end
-                            end else begin
-                                curr_state <= IDLE;
-                            end
-                        end
-                        BACKS: begin
-                            if (stack[sp] == 16'd0) begin
-                                if (sp > 0) begin
-                                    sp <= sp - 1;
-                                    disp_p <= sp - 1;
+                if (~error) begin
+                    if (int_num[4]) begin
+                        case (int_num)
+                            PLUS: begin     // nigga
+                                if (sp >= 1) begin 
+                                    if (stack[sp]) begin    // sum current number if != 0
+                                        dig0 <= stack[sp][3:0] + stack[sp-1][3:0];
+                                        dig1 <= stack[sp][7:4] + stack[sp-1][7:4];
+                                        dig2 <= stack[sp][11:8] + stack[sp-1][11:8];
+                                        dig3 <= stack[sp][15:12] + stack[sp-1][15:12];
+                                        carry <= 4'd0;
+                                        curr_state <= SUM;
+                                    end else if (sp >= 2) begin // sum previous numbers if == 0
+                                        dig0 <= stack[sp-1][3:0] + stack[sp-2][3:0];
+                                        dig1 <= stack[sp-1][7:4] + stack[sp-2][7:4];
+                                        dig2 <= stack[sp-1][11:8] + stack[sp-2][11:8];
+                                        dig3 <= stack[sp-1][15:12] + stack[sp-2][15:12];
+                                        // pop current (0) from stack
+                                        sp <= sp - 1;
+                                        disp_p <= sp - 1;
+                                        carry <= 4'd0;
+                                        curr_state <= SUM;
+                                    end else begin  // or return same as sp-1 if current==0 and there arent enough nums
+                                        sp <= sp - 1;
+                                        disp_p <= sp - 1;
+                                        curr_state <= IDLE;
+                                    end
                                 end else begin
+                                    curr_state <= IDLE;
+                                end
+                            end
+                            MINUS: begin    // nigga
+                                if (sp >= 1) begin 
+                                    if (stack[sp]) begin    // substract current number if != 0
+                                        dig0 <= stack[sp-1][3:0] - stack[sp][3:0];
+                                        dig1 <= stack[sp-1][7:4] - stack[sp][7:4];
+                                        dig2 <= stack[sp-1][11:8] - stack[sp][11:8];
+                                        dig3 <= stack[sp-1][15:12] - stack[sp][15:12];
+                                        carry <= 4'd0;
+                                        curr_state <= SUBS;
+                                    end else if (sp >= 2) begin // substract previous numbers if == 0
+                                        dig0 <= stack[sp-2][3:0] - stack[sp-1][3:0];
+                                        dig1 <= stack[sp-2][7:4] - stack[sp-1][7:4];
+                                        dig2 <= stack[sp-2][11:8] - stack[sp-1][11:8];
+                                        dig3 <= stack[sp-2][15:12] - stack[sp-1][15:12];
+                                        // pop current (0) from stack
+                                        sp <= sp - 1;
+                                        disp_p <= sp - 1;
+                                        carry <= 4'd0;
+                                        curr_state <= SUBS;
+                                    end else begin  // or return same as sp-1 if current==0 and there arent enough nums
+                                        sp <= sp - 1;
+                                        disp_p <= sp - 1;
+                                        curr_state <= IDLE;
+                                    end
+                                end else begin
+                                    curr_state <= IDLE;
+                                end
+                            end
+                            BACKS: begin
+                                if (stack[sp] == 16'd0) begin
+                                    if (sp > 0) begin
+                                        sp <= sp - 1;
+                                        disp_p <= sp - 1;
+                                    end else begin
+                                        sp <= sp;
+                                        disp_p <= sp;
+                                    end
+                                end else begin
+                                    stack[sp] <= {4'd0 ,stack[sp][15:4]};
                                     sp <= sp;
                                     disp_p <= sp;
                                 end
-                            end else begin
-                                stack[sp] <= {4'd0 ,stack[sp][15:4]};
-                                sp <= sp;
-                                disp_p <= sp;
+                                curr_state <= IDLE;
                             end
-                            curr_state <= IDLE;
-                        end
-                        ENTER: begin
-                            if ((sp < sp_max) && (stack[sp] != 0)) begin
-                                stack[sp + 1] <= 16'b0;
-                                sp <= sp + 1;
-                                disp_p <= sp + 1;
-                            end else if (sp == sp_max) begin
-                                error <= 1;
+                            ENTER: begin
+                                if ((sp < sp_max) && (stack[sp] != 0)) begin
+                                    stack[sp + 1] <= 16'b0;
+                                    sp <= sp + 1;
+                                    disp_p <= sp + 1;
+                                end else if (sp == sp_max) begin
+                                    error <= 1;
+                                end
+                                curr_state <= IDLE;
                             end
+                            DOWN: begin
+                                if (disp_p < sp) begin
+                                    disp_p <= disp_p + 1;
+                                end
                             curr_state <= IDLE;
-                        end
-                        DOWN: begin
-                            if (disp_p < sp) begin
-                                disp_p <= disp_p + 1;
                             end
-                        curr_state <= IDLE;
-                        end
-                        UP: begin
-                            if (disp_p > 0) begin
-                                disp_p <= disp_p - 1;
+                            UP: begin
+                                if (disp_p > 0) begin
+                                    disp_p <= disp_p - 1;
+                                end
+                                curr_state <= IDLE;
                             end
-                            curr_state <= IDLE;
-                        end
-                        NOP: begin
-                            curr_state <= IDLE;
-                        end
-                        default: begin
-                            curr_state <= IDLE;
-                        end
-                    endcase
-                end else begin
-                    if (int_num[3:0] < 10) begin
-                        if (dp < 3) begin
-                            stack[sp] <= {stack[sp][11:0], int_num[3:0]};
-                        end else begin
-                            if (stack[sp][15:12] == 4'd0) begin
+                            NOP: begin
+                                curr_state <= IDLE;
+                            end
+                            default: begin
+                                curr_state <= IDLE;
+                            end
+                        endcase
+                    end else begin
+                        if (int_num[3:0] < 10) begin
+                            if (dp < 3) begin
                                 stack[sp] <= {stack[sp][11:0], int_num[3:0]};
+                            end else begin
+                                if (stack[sp][15:12] == 4'd0) begin
+                                    stack[sp] <= {stack[sp][11:0], int_num[3:0]};
+                                end
                             end
+                            disp_p <= sp;
                         end
-                        disp_p <= sp;
+                        curr_state <= IDLE;
                     end
+                end else begin
+                    error <= 0;
                     curr_state <= IDLE;
                 end
-            end
+            end 
             SUM: begin
                 dig1 = dig1 + carry[0];
                 dig2 = dig2 + carry[1];
