@@ -52,7 +52,6 @@ module rpn_stack
     // state machine
 
     reg [1:0] curr_state;
-    reg [1:0] next_state;
 
     parameter [1:0] IDLE  = 2'b00;
     parameter [1:0] INTR  = 2'b01;
@@ -62,17 +61,16 @@ module rpn_stack
     parameter [3:0] NULL = 4'b1111;
 
     always @(posedge clk) begin
-        curr_state <= next_state;
         intro_prev <= intro;
         test <= intro && (~intro_prev);
 
         case (curr_state)
             IDLE: begin
                 if (intro && (~intro_prev)) begin
-                    next_state <= INTR;
+                    curr_state <= INTR;
                     int_num <= in_num;
                 end else begin
-                    next_state <= IDLE;
+                    curr_state <= IDLE;
                 end
             end
             INTR: begin
@@ -87,7 +85,7 @@ module rpn_stack
                                     dig2 <= stack[sp][11:8] + stack[sp-1][11:8];
                                     dig3 <= stack[sp][15:12] + stack[sp-1][15:12];
                                     carry <= 4'd0;
-                                    next_state <= SUM;
+                                    curr_state <= SUM;
                                 end else if (sp >= 2) begin // sum previous numbers if == 0
                                     dig0 <= stack[sp-1][3:0] + stack[sp-2][3:0];
                                     dig1 <= stack[sp-1][7:4] + stack[sp-2][7:4];
@@ -97,14 +95,14 @@ module rpn_stack
                                     sp <= sp - 1;
                                     disp_p <= sp - 1;
                                     carry <= 4'd0;
-                                    next_state <= SUM;
+                                    curr_state <= SUM;
                                 end else begin  // or return same as sp-1 if current==0 and there arent enough nums
                                     sp <= sp - 1;
                                     disp_p <= sp - 1;
-                                    next_state <= IDLE;
+                                    curr_state <= IDLE;
                                 end
                             end else begin
-                                next_state <= IDLE;
+                                curr_state <= IDLE;
                             end
                         end
                         MINUS: begin    // nigga
@@ -115,7 +113,7 @@ module rpn_stack
                                     dig2 <= stack[sp-1][11:8] - stack[sp][11:8];
                                     dig3 <= stack[sp-1][15:12] - stack[sp][15:12];
                                     carry <= 4'd0;
-                                    next_state <= SUBS;
+                                    curr_state <= SUBS;
                                 end else if (sp >= 2) begin // substract previous numbers if == 0
                                     dig0 <= stack[sp-2][3:0] - stack[sp-1][3:0];
                                     dig1 <= stack[sp-2][7:4] - stack[sp-1][7:4];
@@ -125,14 +123,14 @@ module rpn_stack
                                     sp <= sp - 1;
                                     disp_p <= sp - 1;
                                     carry <= 4'd0;
-                                    next_state <= SUBS;
+                                    curr_state <= SUBS;
                                 end else begin  // or return same as sp-1 if current==0 and there arent enough nums
                                     sp <= sp - 1;
                                     disp_p <= sp - 1;
-                                    next_state <= IDLE;
+                                    curr_state <= IDLE;
                                 end
                             end else begin
-                                next_state <= IDLE;
+                                curr_state <= IDLE;
                             end
                         end
                         BACKS: begin
@@ -149,7 +147,7 @@ module rpn_stack
                                 sp <= sp;
                                 disp_p <= sp;
                             end
-                            next_state <= IDLE;
+                            curr_state <= IDLE;
                         end
                         ENTER: begin
                             if ((sp < sp_max) && (stack[sp] != 0)) begin
@@ -159,25 +157,25 @@ module rpn_stack
                             end else if (sp == sp_max) begin
                                 error <= 1;
                             end
-                            next_state <= IDLE;
+                            curr_state <= IDLE;
                         end
                         DOWN: begin
                             if (disp_p < sp) begin
                                 disp_p <= disp_p + 1;
                             end
-                        next_state <= IDLE;
+                        curr_state <= IDLE;
                         end
                         UP: begin
                             if (disp_p > 0) begin
                                 disp_p <= disp_p - 1;
                             end
-                            next_state <= IDLE;
+                            curr_state <= IDLE;
                         end
                         NOP: begin
-                            next_state <= IDLE;
+                            curr_state <= IDLE;
                         end
                         default: begin
-                            next_state <= IDLE;
+                            curr_state <= IDLE;
                         end
                     endcase
                 end else begin
@@ -191,7 +189,7 @@ module rpn_stack
                         end
                         disp_p <= sp;
                     end
-                    next_state <= IDLE;
+                    curr_state <= IDLE;
                 end
             end
             SUM: begin
@@ -233,12 +231,12 @@ module rpn_stack
                     stack[sp] <= 0;
                     sp <= sp - 1;
                     disp_p <= sp - 1;
-                    next_state <= IDLE;
+                    curr_state <= IDLE;
                 end else if (carry[3] || (dig3 > 9)) begin
                     error <= 1;
-                    next_state <= IDLE;
+                    curr_state <= IDLE;
                 end else begin
-                    next_state <= SUM;
+                    curr_state <= SUM;
                 end
             end
             SUBS: begin
@@ -280,12 +278,12 @@ module rpn_stack
                     stack[sp] <= 0;
                     sp <= sp - 1;
                     disp_p <= sp - 1;
-                    next_state <= IDLE;
+                    curr_state <= IDLE;
                 end else if (carry[3] || (dig3[4])) begin
                     error <= 1;
-                    next_state <= IDLE;
+                    curr_state <= IDLE;
                 end else begin
-                    next_state <= SUBS;
+                    curr_state <= SUBS;
                 end
             end
         endcase

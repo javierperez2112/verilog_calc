@@ -2,6 +2,7 @@ module keyboard
 
     (
         input wire clk,
+        input wire poll_clk,
         input wire [3:0] sense_pins,
 
         output reg [3:0] drive_pins,
@@ -11,6 +12,8 @@ module keyboard
 
     reg [1:0] drive_cnt;
     reg int_enable;
+    reg prev_poll_clk;
+    reg re_poll_clk;
 
     // operations
     parameter [4:0] PLUS    = 5'b10000;
@@ -22,15 +25,19 @@ module keyboard
     parameter [4:0] NOP     = 5'b10110;
 
     always @(posedge clk) begin
-        if (sense_pins) begin
-            int_enable <= 0;
-            intro <= 1;
-            value <= out_val({drive_pins, sense_pins});
-        end else begin
-            drive_cnt <= drive_cnt + 1;
-            drive_pins <= (4'b0001 << drive_cnt);
-            int_enable <= 1;
-            intro <= 0;
+        prev_poll_clk <= poll_clk;
+        re_poll_clk <= poll_clk & (~prev_poll_clk);
+        if (re_poll_clk) begin
+            if (sense_pins) begin
+                int_enable <= 0;
+                intro <= 1;
+                value <= out_val({drive_pins, sense_pins});
+            end else begin
+                drive_cnt <= drive_cnt + 1;
+                drive_pins <= (4'b0001 << drive_cnt);
+                int_enable <= 1;
+                intro <= 0;
+            end
         end
     end
 
